@@ -29,7 +29,7 @@ import org.springframework.format.annotation.DateTimeFormat;
  */
 
 @Entity
-@Table(name = "'comment'")
+@Table(name = "comment_ent")
 public class Comment implements Serializable {
 
 	private static final long serialVersionUID = 5263115637581174774L;
@@ -51,8 +51,8 @@ public class Comment implements Serializable {
 	@Column(name = "active", nullable = false)
 	private boolean active;
 
-	@JoinColumn(name = "user", nullable = true, updatable = true, insertable = true)
 	@ManyToOne
+	@JoinColumn(nullable = true)
 	private User user;
 
 	@Transient

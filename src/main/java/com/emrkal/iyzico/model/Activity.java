@@ -35,7 +35,7 @@ import com.emrkal.iyzico.listener.ActivityListener;
 
 @Entity
 @EntityListeners(ActivityListener.class)
-@Table(name = "'activity'")
+@Table(name = "activity_ent")
 public class Activity implements Cloneable, Serializable {
 
 	private static final long serialVersionUID = 5263115637581174774L;
@@ -70,8 +70,8 @@ public class Activity implements Cloneable, Serializable {
 	@NotEmpty(message = "Açıklama")
 	private String description;
 
-	@JoinColumn(name = "user", nullable = true, updatable = true, insertable = true)
 	@ManyToOne
+	@JoinColumn(nullable = true)
 	private User user;
 
 	public Activity() {
