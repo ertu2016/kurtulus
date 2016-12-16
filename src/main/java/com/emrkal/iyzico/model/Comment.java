@@ -29,7 +29,7 @@ import org.springframework.format.annotation.DateTimeFormat;
  */
 
 @Entity
-@Table(name = "comment_ent")
+@Table(name = "'comment'")
 public class Comment implements Serializable {
 
 	private static final long serialVersionUID = 5263115637581174774L;

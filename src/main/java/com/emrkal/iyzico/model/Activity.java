@@ -35,7 +35,7 @@ import com.emrkal.iyzico.listener.ActivityListener;
 
 @Entity
 @EntityListeners(ActivityListener.class)
-@Table(name = "activity_ent")
+@Table(name = "'activity'")
 public class Activity implements Cloneable, Serializable {
 
 	private static final long serialVersionUID = 5263115637581174774L;
