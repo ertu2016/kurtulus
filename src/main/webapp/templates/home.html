@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>ToDo List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <link href="../../css/bootstrap.min.css" rel="stylesheet" th:href="@{/css/bootstrap.min.css}" />
+    <link href="../../css/bootstrap-responsive.min.css" rel="stylesheet" th:href="@{/css/bootstrap-responsive.min.css}" />
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet" />
+    <link href="../../css/font-awesome.css" rel="stylesheet" th:href="@{/css/font-awesome.css}" />
+    <link href="../../css/style.css" rel="stylesheet" th:href="@{/css/style.css}" />
+    <link href="../../css/pages/dashboard.css" rel="stylesheet" th:href="@{/css/pages/dashboard.css}" />
+    <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <link href="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/css/datepicker.min.css" rel="stylesheet" />
+
+    <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/bootstrap-datepicker/1.3.0/js/bootstrap-datepicker.js"></script>
+
+</head>
+
+<body>
+    <div class="navbar navbar-fixed-top">
+        <div class="navbar-inner">
+            <div class="container"> <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse"><span
+                    class="icon-bar"></span><span class="icon-bar"></span><span class="icon-bar"></span> </a>
+                <a class="brand" href="/">
+                    <div sec:authorize="isAuthenticated()">
+                        <h2 th:text=" ${userName}+ '  ToDo List'"></h2>
+                    </div>
+
+                </a>
+                <div class="nav-collapse">
+                    <ul class="nav pull-right">
+
+                        <form th:action="@{/logout}" method="post">
+                            <button type="submit" class="button btn btn-success btn-large">Çıkış</button>
+                        </form>
+
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="subnavbar">
+    </div>
+    <div class="main">
+        <div class="main-inner">
+            <div class="container">
+                <div class="row">
+                    <div class="span6">
+
+                        <div class="widget widget-nopad">
+                            <div class="widget-header"> <i class="icon-list-alt"></i>
+                                <h3> Aktivite Takvimi</h3>
+                            </div>
+                            <div class="widget-content">
+                                <div id='calendar'>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="widget widget-nopad">
+                            <div class="widget widget-table action-table">
+                                <div class="widget-header"> <i class="icon-th-list"></i>
+                                    <h3>Hedef Tarihi Geçen Aktiviteler</h3>
+                                </div>
+                                <div class="widget-content">
+                                    <table class="table table-striped table-bordered">
+                                        <thead>
+                                            <tr>
+                                                <th> Aktivite Adı </th>
+                                                <th> Açıklama</th>
+                                                <th class="td-actions"> DONE ? </th>
+                                            </tr>
+                                        </thead>
+
+                                        <tbody>
+                                            
+                                            <tr th:each="p : ${passingTimeActivities}">
+                                                <td th:text="${p.activityName}">actvity name</td>
+                                                <td th:text="${p.description}">description</td>
+                                                <td class="td-actions">
+                                                    <a th:onclick="'confirmActivityModalDialog(\'' + ${p.id} + '\');'" class="btn btn-small btn-success">
+                                                        <i class="btn-icon-only icon-ok"> </i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                            
+                                        </tbody>
+
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="span6">
+                        <div class="widget">
+                            <div class="widget-header"> <i class="icon-bookmark"></i>
+                                <h3>İşlemler</h3>
+                            </div>
+                            <div class="widget-content">
+
+                                <div class="shortcuts">
+
+                                    <input type="hidden" th:id="csrf-token" th:name="${_csrf.parameterName}" th:content="${_csrf.token}" />
+
+                                    <a th:href="@{#addActivityModal}" data-keyboard="false" data-toggle="modal" class="shortcut"><i class="shortcut-icon icon-list-alt"></i><span
+                                        class="shortcut-label">Aktivite Ekle</span> </a>
+
+                                    <a th:href="@{#searchActivityModal}" data-keyboard="false" data-toggle="modal" class="shortcut"><i class="shortcut-icon icon-file"></i><span class="shortcut-label">Aktivite Düzenle</span> </a>
+
+                                    <a th:href="@{#addCommentModal}" data-keyboard="false" data-toggle="modal" class="shortcut"><i class="shortcut-icon icon-comment"></i><span class="shortcut-label">Yorum Ekle</span> </a>
+
+                                </div>
+
+                                <div th:if="${notValid}">
+                                    <script>
+                                        $(document)
+                                            .ready(function() {
+                                                $('#addActivityModal')
+                                                    .modal('show');
+                                            });
+
+                                    </script>
+
+                                </div>
+
+                                <div th:if="${notValidUpdate}">
+                                    <script>
+                                        $(document)
+                                            .ready(function() {
+                                                $('#updateActivityModal')
+                                                    .modal('show');
+                                            });
+
+                                    </script>
+
+                                </div>
+
+                                <form action="#" th:action="@{/addActivity}" th:object="${activity}" method="post" th:if="${activity}!=null">
+
+                                    <div id="addActivityModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                        <div class="modal-header">
+                                            <div class="alert alert-error alert-block" th:if="${notValid}">
+                                                <h4 class="alert-heading">Uyarı!</h4> Aşağıdaki Alanlar Zorunludur :
+                                                <div th:if="${#fields.hasErrors('activityName')}">
+                                                    *
+                                                    <td th:errors="*{activityName}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('startDate')}">
+                                                    *
+                                                    <td th:errors="*{startDate}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('endDate')}">
+                                                    *
+                                                    <td th:errors="*{endDate}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('status')}">
+                                                    *
+                                                    <td th:errors="*{status}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('description')}">
+                                                    *
+                                                    <td th:errors="*{description}"></td>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body">
+
+                                            <table>
+                                                <tr>
+                                                    <td>Aktivite Adı:</td>
+                                                    <td>
+                                                        <input th:required="required" th:style="'width: 400px'" type="text" th:field="*{activityName}" placeholder="Aktivite Adı" />*</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Başlangıç Tarihi:</td>
+                                                    <td>
+
+                                                        <div class="input-group date">
+                                                            <div class="col-sm-12">
+                                                                <div class='col-sm-6 col-sm-offset-3'>
+                                                                    <div class="form-group">
+                                                                        <div class='input-group date' id='datetimepicker'>
+                                                                            <input th:required="required" th:style="'width: 400px'" type='text' class="form-control readonly" placeholder="Başlangıç Tarihi" th:value="${activity.startDate}" th:field="*{startDate}" />*
+                                                                            <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <script>
+                                                            $('.input-group.date')
+                                                                .datepicker({
+                                                                    format: "dd/mm/yyyy",
+                                                                    autoclose: true,
+                                                                    todayHighlight: true
+                                                                });
+
+                                                        </script>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <tr>
+                                                        <td>Bitiş Tarihi:</td>
+                                                        <td>
+
+                                                            <div class="input-group date">
+                                                                <div class="col-sm-12">
+                                                                    <div class='col-sm-6 col-sm-offset-3'>
+                                                                        <div class="form-group">
+                                                                            <div class='input-group date' id='datetimepicker'>
+                                                                                <input th:required="required" th:style="'width: 400px'" type='text' class="form-control readonly" placeholder="Bitiş Tarihi" th:value="${activity.endDate}" th:field="*{endDate}" />*
+                                                                                <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <script>
+                                                                $('.input-group.date')
+                                                                    .datepicker({
+                                                                        format: "dd/mm/yyyy",
+                                                                        autoclose: true,
+                                                                        todayHighlight: true
+                                                                    });
+
+                                                            </script>
+                                                        </td>
+                                                    </tr>
+                                                </tr>
+                                                <tr>
+                                                    <td>Durum</td>
+                                                    <td>
+                                                        <input th:required="required" readonly="readonly" th:style="'width: 400px'" type="text" th:field="*{status}" value="ONNNE" />*
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>Açıklama</td>
+                                                    <td>
+                                                        <textarea th:required="required" placeholder="Açıklama" th:field="*{description}" th:style="'width: 400px'" class="form-control" rows="5" th:id="description"></textarea>*</td>
+                                                </tr>
+                                            </table>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">Kapat</button>
+                                            <button class="btn btn-primary" type="submit">Kaydet</button>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <div id="searchActivityModal" class="modalUpdate hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                    <div class="modal-body">
+                                        <div class="table-responsive">
+                                            <table class="table">
+                                                <thead>
+                                                    <tr>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <input th:id="searchActivityName" type="text" placeholder="Aktivite Adı" />
+                                                        </td>
+                                                        <td>
+                                                            <div class="row">
+                                                                <div class="col-sm-12">
+                                                                    <div class='col-sm-6 col-sm-offset-3'>
+                                                                        <div class="form-group">
+                                                                            <div class='input-group date' id='datetimepicker'>
+                                                                                <input th:required="required" th:id="searchStartDate" type='text' class="form-control readonly" placeholder="Başlangıç Tarihi" />
+                                                                                <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <script>
+                                                                $('.input-group.date')
+                                                                    .datepicker({
+                                                                        format: "dd/mm/yyyy",
+                                                                        autoclose: true,
+                                                                        todayHighlight: true
+                                                                    });
+
+                                                            </script>
+                                                        </td>
+                                                        <td>
+                                                            <div class="input-group date">
+                                                                <div class="row">
+                                                                    <div class="col-sm-12">
+                                                                        <div class='col-sm-6 col-sm-offset-3'>
+                                                                            <div class="form-group">
+                                                                                <div class='input-group date' id='datetimepicker'>
+                                                                                    <input th:required="required" th:id="searchEndDate" type='text' class="form-control readonly" placeholder="Bitiş Tarihi" />
+                                                                                    <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+                                                                                    </span>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <script>
+                                                                $('.input-group.date')
+                                                                    .datepicker({
+                                                                        format: "dd/mm/yyyy",
+                                                                        ignoreReadonly: true,
+                                                                        autoclose: true,
+                                                                        todayHighlight: true
+                                                                    });
+
+                                                            </script>
+                                                        </td>
+                                                        <td>
+                                                            <select th:id="searchStatus">
+                                                                <option th:each="statu : ${T(com.emrkal.iyzico.enums.ToDoStatus).values()}" th:value="${statu}" th:text="${statu}">
+                                                                </option>
+                                                            </select>
+                                                        </td>
+
+                                                    </tr>
+
+                                                </tbody>
+                                            </table>
+
+                                            <div id="myMenu" style="height:250px;overflow-y:scroll;">
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">Kapat</button>
+                                        <button onclick="ajaxReq();" class="btn btn-success">Ara</button>
+                                    </div>
+
+                                    <div class="table-responsive">
+
+                                    </div>
+
+                                </div>
+
+                                <div id="confirmActivityModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                    <div class="modal-header">
+
+                                    </div>
+                                    <div class="modal-body">
+                                        Onaylıyor musunuz ?
+                                        <input type="hidden" name="bookId" th:id="bookId" value="" />
+
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn" data-dismiss="modal" aria-hidden="true">Kapat</button>
+                                        <a id="updateConfirmActivityLink">
+                                            <button class="btn btn-primary">Onayla</button>
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <form action="#" th:action="@{/updateActivity}" th:object="${activity}" method="post" th:if="${activity}!=null">
+
+                                    <div id="updateActivityModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                        <div class="modal-header">
+                                            <div class="alert alert-error alert-block" th:if="${notValidUpdate}">
+                                                <h4 class="alert-heading">Uyarı!</h4> Aşağıdaki Alanlar Zorunludur :
+                                                <div th:if="${#fields.hasErrors('activityName')}">
+                                                    *
+                                                    <td th:errors="*{activityName}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('startDate')}">
+                                                    *
+                                                    <td th:errors="*{startDate}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('endDate')}">
+                                                    *
+                                                    <td th:errors="*{endDate}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('status')}">
+                                                    *
+                                                    <td th:errors="*{status}"></td>
+                                                    <br/>
+                                                </div>
+
+                                                <div th:if="${#fields.hasErrors('description')}">
+                                                    *
+                                                    <td th:errors="*{description}"></td>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-body">
+                                            <input type="hidden" th:field="*{id}" id="updateActivityId" />
+
+                                            <table>
+                                                <tr>
+                                                    <td>Aktivite Adı:</td>
+                                                    <td>
+                                                        <input th:required="required" th:style="'width: 400px'" type="text" th:field="*{activityName}" id="updateActivityName" placeholder="Aktivite Adı" />*</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Başlangıç Tarihi:</td>
+                                                    <td>
+
+                                                        <div class="input-group date">
+                                                            <div class="col-sm-12">
+                                                                <div class='col-sm-6 col-sm-offset-3'>
+                                                                    <div class="form-group">
+                                                                        <div class='input-group date' id='datetimepicker'>
+                                                                            <input th:required="required" th:style="'width: 400px'" type='text' class="form-control readonly" id="updateActivityStartDate" th:value="${activity.startDate}" placeholder="Başlangıç Tarihi" th:field="*{startDate}" />*
+                                                                            <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <script>
+                                                            $('.input-group.date')
+                                                                .datepicker({
+                                                                    format: "dd/mm/yyyy",
+                                                                    autoclose: true,
+                                                                    todayHighlight: true
+                                                                });
+
+                                                        </script>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <tr>
+                                                        <td>Bitiş Tarihi:</td>
+                                                        <td>
+
+                                                            <div class="input-group date">
+                                                                <div class="col-sm-12">
+                                                                    <div class='col-sm-6 col-sm-offset-3'>
+                                                                        <div class="form-group">
+                                                                            <div class='input-group date' id='datetimepicker'>
+                                                                                <input th:required="required" th:style="'width: 400px'" type='text' class="form-control readonly" id="updateActivityEndDate" placeholder="Bitiş Tarihi" th:field="*{endDate}" />*
+                                                                                <span class="input-group-addon">
+              <span class="glyphicon glyphicon-calendar"></span>
+                                                                                </span>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <script>
+                                                                $('.input-group.date')
+                                                                    .datepicker({
+                                                                        format: "dd/mm/yyyy",
+                                                                        autoclose: true,
+                                                                        todayHighlight: true
+                                                                    });
+
+                                                            </script>
+                                                        </td>
+                                                    </tr>
+                                                </tr>
+                                                <tr>
+                                                    <td>Durum</td>
+                                                    <td>
+
+                                                        <select th:required="required" id="updateActivityStatus" th:field="*{status}" th:style="'width: 408px'">
+                                                            <option th:each="statu : ${T(com.emrkal.iyzico.enums.ToDoStatus).values()}" th:value="${statu}" th:text="${statu}">
+                                                            </option>
+                                                        </select>
+
+                                                    </td>
+                                                </tr>
+
+                                                <tr>
+                                                    <td>Açıklama</td>
+                                                    <td>
+                                                        <textarea th:required="required" placeholder="Açıklama" th:field="*{description}" th:style="'width: 400px'" id="updateActivityDescription" class="form-control" rows="5"></textarea>*</td>
+                                                </tr>
+                                            </table>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button onclick="closedUpdateActivityModalDialog();" class="btn" data-dismiss="modal" aria-hidden="true">Kapat</button>
+
+                                            <a id="actionUpdateButton">
+                                                <button class="btn btn-primary">Güncelle</button>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+
+                                <form action="#" th:action="@{/saveComment}" th:object="${comment}" method="post" th:if="${comment}!=null">
+
+                                    <div id="addCommentModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+                                        <div class="modal-header">
+                                        </div>
+                                        <div class="modal-body">
+
+                                            <table>
+                                                <tr>
+                                                    <td>
+                                                        <textarea th:required="required" placeholder="Yorum Ekle..." th:field="*{description}" th:style="'width: 510px'" class="form-control" rows="5"></textarea>*</td>
+                                                </tr>
+                                            </table>
+
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button class="btn" data-dismiss="modal" aria-hidden="true">Kapat</button>
+
+                                            <a id="actionUpdateButton">
+                                                <button class="btn btn-primary">Kaydet</button>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </form>
+
+                            </div>
+                        </div>
+                        <div class="widget">
+                            <div class="widget-header"> <i class="icon-signal"></i>
+                                <h3>Aktivite Durum</h3>
+                            </div>
+                            <div class="widget-content">
+                                <canvas id="pie-chart" class="chart-holder" height="250" width="538"></canvas>
+                            </div>
+
+                        </div>
+
+                        <div class="widget widget-nopad">
+                            <div class="widget-header"> <i class="icon-list-alt"></i>
+                                <h3> Yorumlar</h3>
+                            </div>
+                            <div class="widget-content">
+
+                                <ul class="news-items">
+
+                                    <li th:each="row : ${commentList}">
+                                        <div class="news-item-date"> <span class="news-item-day" th:text="${row.day}"></span> <span class="news-item-month" th:text="${row.month}"></span> </div>
+                                        <div class="news-item-detail">
+                                            <p class="news-item-preview" th:text="${row.description}"> </p>
+                                        </div>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <input type="hidden" id="pieData" name="pieData" th:value=" ${pieData}" />
+            </div>
+        </div>
+    </div>
+    <div class="extra">
+        <div class="extra-inner">
+            <div class="container">
+            </div>
+        </div>
+    </div>
+    <div class="footer">
+    </div>
+
+    <script th:src="@{/js/jquery-1.7.2.min.js}"></script>
+    <script th:src="@{/js/excanvas.min.js}"></script>
+    <script th:src="@{/js/chart.min.js}" type="text/javascript"></script>
+    <script th:src="@{/js/bootstrap.js}"></script>
+    <script language="javascript" type="text/javascript" th:src="@{/js/full-calendar/fullcalendar.min.js}"></script>
+
+    <script th:src="@{/js/base.js}"></script>
+    <script  charset="UTF-8">
+        var token1 = $('input#csrf-token')
+            .attr("content");
+
+        function closedUpdateActivityModalDialog() {
+            $('#searchActivityModal')
+                .modal('show');
+        }
+
+        function confirmActivityModalDialog(value) {
+            var link = document.getElementById("updateConfirmActivityLink");
+            link.setAttribute('href', "/updateConfirmActivity/" + value);
+            $('#confirmActivityModal')
+                .modal('show');
+        }
+        var myPie = new Chart(document.getElementById("pie-chart")
+                .getContext("2d"))
+            .Pie($.parseJSON($("#pieData")
+                .val()));
+        $(document)
+            .ready(function() {
+                var date = new Date();
+                var d = date.getDate();
+                var m = date.getMonth();
+                var y = date.getFullYear();
+                var calendar = $('#calendar')
+                    .fullCalendar({
+                        header: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: ''
+                        },
+                        selectable: true,
+                        selectHelper: true,
+                        editable: true,
+                        events: "/calendar/setToDoCalendarData",
+                        eventRender: function(event, element) {
+                            element.attr('title', event.tooltip);
+                        }
+                    });
+            });
+        //<![CDATA[
+        function formatDate(date) {
+            var d = new Date(date),
+                month = '' + (d.getMonth() + 1),
+                day = '' + d.getDate(),
+                year = d.getFullYear();
+            if (month.length < 2) month = '0' + month;
+            if (day.length < 2) day = '0' + day;
+            return [day, month, year].join('/');
+        }
+
+        function openUpdateActivityModalDialog(value) {
+            var token2 = $('input#csrf-token')
+                .attr("content");
+            $.ajax({
+                beforeSend: function(request) {
+                    request.setRequestHeader("X-CSRF-TOKEN", token2);
+                },
+                url: "/findActivityById",
+                type: "POST",
+                data: {
+                    id: value
+                },
+                success: function(response) {
+                    $('#updateActivityId')
+                        .val(response.id);
+                    $('#updateActivityName')
+                        .val(response.activityName);
+                    $('#updateActivityStartDate')
+                        .val(formatDate(response.startDate));
+                    $('#updateActivityEndDate')
+                        .val(formatDate(response.endDate));
+                    $('#updateActivityStatus')
+                        .val(response.status);
+                    $('#updateActivityDescription')
+                        .val(response.description);
+                    $('#searchActivityModal')
+                        .modal('hide')
+                        .on('hidden.bs.modal', function(e) {
+                            //  	     	$('.modal-backdrop').remove();
+                            $('#updateActivityModal')
+                                .modal('show');
+                            $(this)
+                                .off('hidden.bs.modal');
+                        });
+                }
+            });
+        }
+
+        function ajaxReq() {
+                var searchActivityName = $("#searchActivityName")
+                    .val();
+                var searchStatus = $("#searchStatus")
+                    .val();
+                document.getElementById("myMenu")
+                    .innerHTML = "";
+                var tableDiv = $("<div class='table-responsive'>");
+                $('#myMenu')
+                    .append(tableDiv);
+                var table = $("<table class='table'>");
+                tableDiv.append(table);
+                var html = "<thead>" +
+                    "    <tr>" +
+                    "        <th><strong> Aktivite Adı </strong></th>" +
+                    "        <th><strong> Başlangıç Tarihi </strong></th>" +
+                    "        <th><strong> Bitiş Tarihi </strong></th>" +
+                    "        <th><strong> Açıklama </strong></th>" +
+                    "        <th><strong> İşlem </strong></th>" +
+                    "     </tr>" +
+                    "</thead>";
+                var tableHead = $(html);
+                table.append(tableHead);
+                $.ajax({
+                    beforeSend: function(request) {
+                        request.setRequestHeader("X-CSRF-TOKEN", token1);
+                    },
+                    url: "/searchActivity",
+                    type: "POST",
+                    data: {
+                        searchActivityName: searchActivityName,
+                        searchStartDate: $("#searchStartDate")
+                            .val(),
+                        searchEndDate: $("#searchEndDate")
+                            .val(),
+                        searchStatus: searchStatus
+                    },
+                    success: function(response) {
+                        response = $.parseJSON(response);
+                        var trHTML = '';
+                        $.each(response, function(i, item) {
+                            console.log(i);
+                            trHTML += '<tr><td>' + item.activityName + '</td><td>' + item.startDate + '</td><td>' + item.endDate + '</td><td style="width:250px;"  >' + item.description + '</td>' + "<td style='width:5px;' class='td-actions' >" +
+                                "<a data-keyboard='false'  onclick='openUpdateActivityModalDialog(" +
+                                item.id + ");'   class='btn btn-small btn-success'>" +
+                                "<i  class='btn-icon-only icon-zoom-in'> </i></a>" +
+                                "</td>" + '</td></tr>';
+                        });
+                        console.log(trHTML);
+                        table.append(trHTML);
+                    }
+                });
+                console.log(table);
+            }
+            //]]>
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity3">
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>ToDo List</title>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+
+    <link href="../../css/bootstrap.min.css" rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.min.css}" />
+    <link href="../../css/bootstrap-responsive.min.css" rel="stylesheet" type="text/css" th:href="@{/css/bootstrap-responsive.min.css}" />
+
+    <link href="../../css/font-awesome.css" rel="stylesheet" th:href="@{/css/font-awesome.css}" />
+    <link href="http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600" rel="stylesheet" th:href="@{http://fonts.googleapis.com/css?family=Open+Sans:400italic,600italic,400,600}" />
+
+    <link href="../../css/style.css" rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
+    <link href="../../css/pages/signin.css" rel="stylesheet" type="text/css" th:href="@{/css/pages/signin.css}" />
+
+    <script src="js/jquery-1.7.2.min.js"></script>
+    <script src="js/bootstrap.js"></script>
+
+    <script src="js/signin.js"></script>
+
+</head>
+
+<body>
+
+    <div class="navbar navbar-fixed-top">
+
+        <div class="navbar-inner">
+
+            <div class="container">
+
+                <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </a>
+
+                <a class="brand" href="index.html">
+                    			Iyzico ToDo List Demo (Emrullah KALKAN) 			
+                </a>
+
+                <div class="nav-collapse">
+                    <ul class="nav pull-right">
+                        <li class="">
+
+                        </li>
+                        <li class="">
+                            <a href="home" class="">
+                                <i class="icon-chevron-left"></i> Ana Sayfaya Dön
+                            </a>
+
+                        </li>
+                    </ul>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <script type="text/javascript">
+        function validateText(id)
+        {
+            if ($("#" + id)
+                .val() == null || $("#" + id)
+                .val() == "")
+            {
+                var div = $("#" + id);
+                div.css('border-color', 'red');
+                return false;
+            }
+            else
+            {
+                var div = $("#" + id)
+                div.css('border-color', 'green');
+                return true;
+            }
+        }
+
+        function validatePassword(id)
+        {
+            if ($("#" + id)
+                .val() == null || $("#" + id)
+                .val() == "")
+            {
+                var div = $("#" + id);
+                div.css('border-color', 'red');
+                return false;
+            }
+            else
+            {
+                var div = $("#" + id)
+                div.css('border-color', 'green');
+                if ($('#password')
+                    .val() != $('#confirm_password')
+                    .val())
+                {
+                    alert("Şifreler Eşleşmiyor!");
+                    var divpassword = $("#password");
+                    divpassword.css('border-color', 'red');
+                    var confirm_password = $("#confirm_password");
+                    confirm_password.css('border-color', 'red');
+                    return false;
+                }
+                return true;
+            }
+        }
+
+        function validateEmail(id)
+        {
+            var email_regex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/i;
+            if (!email_regex.test($("#" + id)
+                    .val()))
+            {
+                var div = $("#" + id)
+                div.css('border-color', 'red');
+                return false;
+            }
+            else
+            {
+                var div = $("#" + id)
+                div.css('border-color', 'green');
+                return true;
+            }
+        }
+        $(document)
+            .ready(function()
+            {
+                $("#submitForm")
+                    .click(function()
+                    {
+                        if (!validateText("username"))
+                        {
+                            return false;
+                        }
+                        if (!validateText("firstname"))
+                        {
+                            return false;
+                        }
+                        if (!validateText("lastname"))
+                        {
+                            return false;
+                        }
+                        if (!validateEmail("email"))
+                        {
+                            return false;
+                        }
+                        if (!validatePassword("password"))
+                        {
+                            return false;
+                        }
+                        if (!validatePassword("confirm_password"))
+                        {
+                            return false;
+                        }
+                        $("#submitForm")
+                            .submit();
+                    });
+            });
+
+    </script>
+
+    <div class="account-container register">
+
+        <div class="content clearfix">
+
+            <form id="form" th:action="@{/registration}" th:object="${user}" method="post" th:if="${user}!=null">
+
+                <h1>Üye Kaydı</h1>
+
+                <div class="login-fields">
+
+                    <div class="field">
+                        <input th:field="*{username}" type="text" th:id="username" name="username" value="" placeholder="Kullanıcı Adı" class="login" />
+                    </div>
+
+                    <div class="field">
+                        <input th:field="*{name}" type="text" th:id="firstname" name="firstname" value="" placeholder="Ad" class="login" />
+                    </div>
+
+                    <div class="field">
+                        <input th:field="*{lastName}" type="text" th:id="lastname" name="lastname" value="" placeholder="Soyad" class="login" />
+                    </div>
+
+                    <div class="field">
+                        <input th:field="*{email}" type="text" th:id="email" name="email" value="" placeholder="Email" class="login" />
+                    </div>
+
+                    <div class="field">
+                        <input th:field="*{password}" type="password" th:id="password" name="password" value="" placeholder="Şifre" class="login" maxlength="6" />
+                    </div>
+
+                    <div class="field">
+                        <input th:field="*{confirmPassword}" type="password" th:id="confirm_password" name="confirm_password" value="" placeholder="Şifre Onay" class="login" maxlength="6" />
+                    </div>
+
+                </div>
+
+                <div class="login-actions">
+
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+
+                </div>
+
+                <button th:id="submitForm" class="button btn btn-primary btn-large">Oluştur</button>
+            </form>
+
+        </div>
+
+    </div>
+
+    <div class="login-extra">
+        Hesabınız varmı?
+        <a href="home" class="">
+            <i></i> Ana Sayfaya Dön
+        </a>
+    </div>
+
+</body>
+
+</html>
